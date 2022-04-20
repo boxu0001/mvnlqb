@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.6.6</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>org.box</groupId>
+	<artifactId>MvnLiquibaseDocker</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>MvnLiquibaseDocker</name>
+	<description>Demo project for Spring Boot</description>
+	<properties>
+		<java.version>11</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+			<version>3.8.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.3.4</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.39.1</version>
+				<configuration>
+					<images>
+						<image>
+							<name>postgres:14.2</name>
+							<alias>reporting_db</alias>
+							<run>
+								<env>
+									<POSTGRES_DB>reporting_db</POSTGRES_DB>
+									<POSTGRES_USER>user</POSTGRES_USER>
+									<POSTGRES_PASSWORD>password</POSTGRES_PASSWORD>
+								</env>
+								<ports>
+									<port>5432:5432</port>
+								</ports>
+								<wait>
+									<log>(?s)ready to accept connections.*ready to accept connections</log>
+									<time>3000</time>
+								</wait>
+							</run>
+						</image>
+					</images>
+				</configuration>
+				<executions>
+					<execution>
+						<id>start_reporting_db</id>
+						<goals>
+							<goal>start</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>stop_reporting_db</id>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.2</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+						<configuration>
+							<classifier>schema</classifier>
+							<testClassesDirectory>target/generated-test-sources</testClassesDirectory>
+							<includes>
+								<include>**/reporting_db_ddl.sql</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.liquibase</groupId>
+				<artifactId>liquibase-maven-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<propertyFile>src/main/resources/liquibase.properties</propertyFile>
+					<url>jdbc:postgresql://localhost:5432/reporting_db</url>
+					<username>user</username>
+					<password>password</password>
+					<driver>org.postgresql.Driver</driver>
+					<changeLogFile>src/main/resources/db/dbchangelog.xml</changeLogFile>
+					<migrationSqlOutputFile>target/generated-test-sources/reporting_db_ddl.sql</migrationSqlOutputFile>
+				</configuration>
+				<executions>
+					<execution>
+						<id>db.updateSQL</id>
+<!--						<phase>generate-resources</phase>-->
+						<phase>integration-test</phase>
+						<goals>
+							<goal>updateSQL</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://repo.spring.io/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>spring-snapshots</id>
+			<name>Spring Snapshots</name>
+			<url>https://repo.spring.io/snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://repo.spring.io/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-snapshots</id>
+			<name>Spring Snapshots</name>
+			<url>https://repo.spring.io/snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</pluginRepository>
+	</pluginRepositories>
+
+</project>
