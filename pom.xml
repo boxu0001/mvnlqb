@@ -103,7 +103,7 @@
 						</goals>
 						<configuration>
 							<classifier>schema</classifier>
-							<testClassesDirectory>target/generated-test-sources</testClassesDirectory>
+							<testClassesDirectory>target/generated-schemas</testClassesDirectory>
 							<includes>
 								<include>**/reporting_db_ddl.sql</include>
 							</includes>
@@ -117,13 +117,12 @@
 				<artifactId>liquibase-maven-plugin</artifactId>
 				<version>3.8.0</version>
 				<configuration>
-					<propertyFile>src/main/resources/liquibase.properties</propertyFile>
-					<url>jdbc:postgresql://localhost:5432/reporting_db</url>
+<!--					<url>jdbc:postgresql://localhost:5432/reporting_db</url>-->
 					<username>user</username>
 					<password>password</password>
 					<driver>org.postgresql.Driver</driver>
 					<changeLogFile>src/main/resources/db/dbchangelog.xml</changeLogFile>
-					<migrationSqlOutputFile>target/generated-test-sources/reporting_db_ddl.sql</migrationSqlOutputFile>
+					<migrationSqlOutputFile>target/generated-schemas/reporting_db_ddl.sql</migrationSqlOutputFile>
 				</configuration>
 				<executions>
 					<execution>
